@@ -32,6 +32,15 @@ Manually extracting the core thesis of dense academic literature is time-consumi
        │
 [ Custom Ensemble Judge ] ──(Calculates Keyword Density & Context)──> [ 🏆 Final Optimal Title ]
 ```
+
+## Dataset & Data Engineering
+
+The models were fine-tuned using a comprehensive dataset of academic research papers. To ensure full reproducibility and open-source collaboration, the processed dataset has been hosted on the Hugging Face Hub.
+
+* **Dataset Hub:** [View Dataset on Hugging Face](https://huggingface.co/datasets/subhan1501/arxiv-abstractive-summarization)
+* **Domain:** Computer Science, Physics, and Mathematics (arXiv)
+* **Structure:** The dataset consists of complex, multi-paragraph `abstracts` mapped to their corresponding highly condensed academic `titles`.
+
 ## Model Evaluation (ROUGE Metrics)
 The models were evaluated against an unseen test set of research abstracts using the industry-standard ROUGE (Recall-Oriented Understudy for Gisting Evaluation) metric.
 
