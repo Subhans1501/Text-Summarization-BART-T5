@@ -1,7 +1,6 @@
 import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
-import os
 import time
 from ensemble import calculate_ensemble_winner
 
@@ -15,42 +14,41 @@ st.set_page_config(
 def load_models():
     models = {}
     device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    base_dir = os.path.dirname(__file__)
     model_paths = {
-        "BART": os.path.abspath(os.path.join(base_dir, '..', 'models', 'Model_BART')),
-        "T5": os.path.abspath(os.path.join(base_dir, '..', 'models', 'Model_T5')),
-        "PEGASUS": os.path.abspath(os.path.join(base_dir, '..', 'models', 'Model_Pegasus'))
+        "BART": "subhan1501/arxiv-bart-generator",
+        "T5": "subhan1501/arxiv-t5-generator",
+        "PEGASUS": "subhan1501/arxiv-pegasus-generator"
     }
     
-    for name, path in model_paths.items():
-        if os.path.exists(path):
-            try:
-                tokenizer = AutoTokenizer.from_pretrained(path)
-                model = AutoModelForSeq2SeqLM.from_pretrained(path).to(device)
+    for name, repo_id in model_paths.items():
+        try:
+            tokenizer = AutoTokenizer.from_pretrained(repo_id)
+            model = AutoModelForSeq2SeqLM.from_pretrained(repo_id).to(device)
 
-                if name == "PEGASUS":
-                    model.config.use_cache = True
-                    
-                models[name] = {"tokenizer": tokenizer, "model": model, "device": device}
-            except Exception as e:
-                pass 
+            if name == "PEGASUS":
+                model.config.use_cache = True
+                
+            models[name] = {"tokenizer": tokenizer, "model": model, "device": device}
+        except Exception as e:
+            print(f"Failed to load {name}: {e}")
+            
     return models
 
-with st.spinner("Initializing Neural Networks..."):
+with st.spinner("Downloading and Initializing Neural Networks from Cloud... (This may take a minute on first run)"):
     active_models = load_models()
+
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/2103/2103832.png", width=80)
     st.title("System Status")
     st.markdown("### Active Models:")
     
-    if "BART" in active_models: st.success("🟢 BART (facebook/bart-large)")
+    if "BART" in active_models: st.success("🟢 BART (subhan1501/arxiv-bart)")
     else: st.error("🔴 BART (Offline)")
         
-    if "T5" in active_models: st.success("🟢 T5 (t5-base)")
+    if "T5" in active_models: st.success("🟢 T5 (subhan1501/arxiv-t5)")
     else: st.error("🔴 T5 (Offline)")
         
-    if "PEGASUS" in active_models: st.success("🟢 PEGASUS (google/pegasus-xsum)")
+    if "PEGASUS" in active_models: st.success("🟢 PEGASUS (subhan1501/arxiv-pegasus)")
     else: st.error("🔴 PEGASUS (Offline)")
         
     st.markdown("---")
@@ -65,7 +63,7 @@ The system will deploy **multiple fine-tuned transformers** simultaneously and u
 st.divider()
 
 if not active_models:
-    st.error("Critical Error: No models found. Please ensure your fine-tuned weights are inside the /models folder.")
+    st.error("Critical Error: No models loaded. Please check your internet connection or Hugging Face repository status.")
     st.stop()
 
 input_text = st.text_area(
@@ -94,7 +92,6 @@ if generate_pressed:
                     tokenizer = components["tokenizer"]
                     model = components["model"]
                     device = components["device"]
-
                     process_text = "summarize: " + input_text if model_name == "T5" else input_text
                     
                     inputs = tokenizer(process_text, max_length=512, truncation=True, return_tensors="pt").to(device)
@@ -121,7 +118,7 @@ if generate_pressed:
 
         st.balloons()
         
-        st.markdown("<h2 style='text-align: center;'> Algorithmic Ensemble Winner</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center;'>🏆 Algorithmic Ensemble Winner</h2>", unsafe_allow_html=True)
 
         st.success(f"**Selected Model:** {winning_model}")
         st.markdown(f"""
